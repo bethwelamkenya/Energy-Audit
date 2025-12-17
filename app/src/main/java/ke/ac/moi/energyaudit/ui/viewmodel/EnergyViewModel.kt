@@ -5,10 +5,9 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ke.ac.moi.energyaudit.data.EnergyReadingEntity
-import ke.ac.moi.energyaudit.data.Note
-import ke.ac.moi.energyaudit.data.Note
 import ke.ac.moi.energyaudit.repository.EnergyRepository
 import ke.ac.moi.energyaudit.utils.FakeEnergySensor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

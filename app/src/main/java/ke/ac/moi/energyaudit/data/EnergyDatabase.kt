@@ -1,6 +1,10 @@
 package ke.ac.moi.energyaudit.data
 
 import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import ke.ac.moi.energyaudit.utils.DateConverters
 
 @Database(

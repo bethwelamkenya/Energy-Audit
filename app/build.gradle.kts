@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "ke.ac.moi.energyaudit"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
