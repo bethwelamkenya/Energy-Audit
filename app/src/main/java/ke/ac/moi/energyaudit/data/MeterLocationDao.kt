@@ -9,8 +9,14 @@ import androidx.room.Query
 interface MeterLocationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(meter: MeterLocationEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(meters: List<MeterLocationEntity>)
 
     @Query("SELECT * FROM meter_locations")
     suspend fun getAllMeters(): List<MeterLocationEntity>
+
+    @Query("SELECT COUNT(*) FROM meter_locations")
+    suspend fun count(): Int
 }

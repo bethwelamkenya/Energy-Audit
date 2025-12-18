@@ -7,7 +7,6 @@ import java.time.LocalDateTime
 
 class FakeEnergySensor {
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun generate(meterId: String): EnergyReadingEntity {
         val voltage = (210..240).random().toFloat()
         val current = (5..40).random().toFloat()

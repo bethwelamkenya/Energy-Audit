@@ -5,36 +5,47 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ke.ac.moi.energyaudit.data.EnergyReadingEntity
+import ke.ac.moi.energyaudit.data.MeterLocationEntity
 import ke.ac.moi.energyaudit.repository.EnergyRepository
 import ke.ac.moi.energyaudit.utils.FakeEnergySensor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
 class EnergyViewModel(
     private val repository: EnergyRepository
 ) : ViewModel() {
 
-    private val sensor = FakeEnergySensor()
-
-    private val _readings =
-        MutableStateFlow<Map<String, EnergyReadingEntity>>(emptyMap())
-    val readings: StateFlow<Map<String, EnergyReadingEntity>> = _readings
+    private val _meters = MutableStateFlow<List<MeterLocationEntity>>(emptyList())
+    val meters: StateFlow<List<MeterLocationEntity>> = _meters
 
     init {
         viewModelScope.launch {
+
+            repository.seedMetersIfNeeded()
+            _meters.value = repository.getAllMeters()
+
             while (true) {
-                readings.forEach {
+                _meters.value.forEach {
                     repository.insertSimulatedReading(it.meterId)
                 }
-                delay(2000)
+                delay(30000)
             }
         }
     }
+
+    fun latestReading(meterId: String) =
+        repository.observeLatestReading(meterId)
+
+    fun averagePower(meterId: String) =
+        repository.observeAveragePower(meterId)
+
+    fun generateRecommendation(reading: EnergyReadingEntity): String =
+        repository.generateRecommendation(reading)
 
     fun isInefficient(reading: EnergyReadingEntity): Boolean {
         return reading.powerKw > 15f

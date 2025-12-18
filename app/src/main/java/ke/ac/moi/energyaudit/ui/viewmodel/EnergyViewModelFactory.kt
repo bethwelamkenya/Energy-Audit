@@ -12,7 +12,6 @@ import ke.ac.moi.energyaudit.repository.EnergyRepository
  * This factory will provide the EnergyRepository to the EnergyViewModel.
  */
 class EnergyViewModelFactory(private val repository: EnergyRepository) : ViewModelProvider.Factory {
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EnergyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
