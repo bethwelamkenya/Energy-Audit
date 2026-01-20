@@ -65,6 +65,9 @@ class EnergyRepository(
        Live data streams (UI)
     ------------------------------*/
 
+    fun observeAllReadings(): Flow<List<EnergyReadingEntity>> =
+        readingDao.observeAllReadings()
+
     fun observeLatestReading(meterId: String): Flow<EnergyReadingEntity?> =
         readingDao.observeLatestReading(meterId)
 

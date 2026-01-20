@@ -15,6 +15,9 @@ interface EnergyReadingDao {
     @Query("DELETE FROM energy_readings WHERE meter_id = :meterId")
     suspend fun deleteAllByMeterId(meterId: String)
 
+    @Query("SELECT * FROM energy_readings")
+    fun observeAllReadings(): Flow<List<EnergyReadingEntity>>
+
     @Query("""
         SELECT * FROM energy_readings
         WHERE meter_id = :meterId

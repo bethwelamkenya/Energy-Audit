@@ -139,11 +139,19 @@ fun MeterCard(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "Wing ${meter.wing}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(){
+                            Text(
+                                text = "Block: ${meter.block}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(24.dp))
+                            Text(
+                                text = "Wing: ${meter.wing}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
 
                     // Status Indicator
@@ -159,7 +167,7 @@ fun MeterCard(
                 // Power Value Display
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = reading?.let { "%.2f".format(it.powerKw) } ?: "--",
+                        text = "%.2f".format(it.powerKw),
                         style = MaterialTheme.typography.displaySmall,
                         color = statusColor,
                         fontWeight = FontWeight.ExtraBold
@@ -210,6 +218,101 @@ fun MeterCard(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = viewModel.generateRecommendation(it),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        } ?: run {
+            Column(Modifier.padding(16.dp)) {
+                // Header: Building and Status
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = meter.building,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(){
+                            Text(
+                                text = "Block: ${meter.block}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(24.dp))
+                            Text(
+                                text = "Wing: ${meter.wing}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Status Indicator
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                    )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+
+                // Power Value Display
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "--",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = " kW",
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+
+                // Voltage and Current Display
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Voltage: -- V",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Current: -- A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Recommendation Section
+                Surface(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "--",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )

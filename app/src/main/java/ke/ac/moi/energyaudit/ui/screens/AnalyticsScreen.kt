@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -179,6 +180,10 @@ fun AnalyticsScreen(
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
+                        text = "Block: ${meter.block}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
                         text = "Wing: ${meter.wing}",
                         style = MaterialTheme.typography.bodyLarge,
                     )
@@ -208,17 +213,6 @@ fun AnalyticsScreen(
 
         Spacer(Modifier.height(16.dp))
 
-//        MeterLocationSelector(
-//            locations = meters,
-//            selectedLocation = meter,
-//            onLocationSelected = {
-//                meter = it
-//            }
-//        )
-
-//        Spacer(Modifier.height(16.dp))
-
-        // Group 1: Configuration
         SectionHeader("Range Selector")
         Spacer(Modifier.height(16.dp))
 
@@ -334,18 +328,48 @@ fun AnalyticsScreen(
         SectionHeader("Danger Zone")
 
         Spacer(Modifier.height(16.dp))
+        var showConfirmDialog by remember { mutableStateOf(false) }
 
+        Column {
+            TextButton(
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    showConfirmDialog = true // show the confirmation dialog
+                }
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Remove Meter and All Readings")
+            }
 
-        TextButton(colors = ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.error
-        ), modifier = Modifier.fillMaxWidth(), onClick = {
-            energyViewModel.removeMeter(meter)
-            onMeterRemoved()
-        }) {
-            Icon(Icons.Default.Delete, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Remove Meter and All Readings")
+            if (showConfirmDialog) {
+                AlertDialog(
+                    onDismissRequest = { showConfirmDialog = false },
+                    title = { Text("Confirm Deletion") },
+                    text = { Text("Are you sure you want to remove this meter and all its readings? This action cannot be undone.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                energyViewModel.removeMeter(meter) // perform deletion
+                                onMeterRemoved()
+                                showConfirmDialog = false // close dialog
+                            }
+                        ) {
+                            Text("Delete", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showConfirmDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
         }
+
     }
 }
 

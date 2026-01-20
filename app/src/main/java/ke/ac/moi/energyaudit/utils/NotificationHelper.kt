@@ -43,7 +43,7 @@ object NotificationHelper {
             context,
             EnergyAuditApplication.ENERGY_ALERTS_CHANNEL_ID
         )
-            .setSmallIcon(R.drawable.untitled1)
+            .setSmallIcon(R.drawable.electricity)
             .setContentTitle("Voltage Alert")
             .setContentText("Abnormal power consumption detected from ${meter.building} Wing ${meter.wing}: ${reading.powerKw} kW at ${reading.timestamp.toReadableString()}")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

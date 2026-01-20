@@ -56,6 +56,7 @@ import ke.ac.moi.energyaudit.ui.screens.AddMeterScreen
 import ke.ac.moi.energyaudit.ui.screens.AnalyticsScreen
 import ke.ac.moi.energyaudit.ui.screens.DashboardScreen
 import ke.ac.moi.energyaudit.ui.screens.IconBox
+import ke.ac.moi.energyaudit.ui.screens.ReportsScreen
 import ke.ac.moi.energyaudit.ui.theme.EnergyAuditTheme
 import ke.ac.moi.energyaudit.ui.viewmodel.ChartViewModel
 import ke.ac.moi.energyaudit.ui.viewmodel.ChartViewModelFactory
@@ -98,7 +99,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RequestNotificationPermission(context: Context) {
 
-    val permissionLauncher = rememberLauncherForActivityResult (
+    val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
@@ -143,7 +144,7 @@ fun EnergyAuditApp(
                 actions = {}
             )
         },
-//        bottomBar = { BottomNavBar(navController) }
+        bottomBar = { BottomNavBar(navController) }
     ) { padding ->
         Box(Modifier.padding(padding)) {
             EnergyAuditNavGraph(
@@ -195,28 +196,18 @@ fun EnergyAuditNavGraph(
 
         composable(Screen.AddMeter.route) {
             AddMeterScreen(
-                onAddMeter = { meterId, building, wing, latitude, longitude, installedDate ->
-                    energyViewModel.addMeter(
-                        MeterLocationEntity(
-                            meterId = meterId,
-                            building = building,
-                            wing = wing,
-                            latitude = latitude,
-                            longitude = longitude,
-                            installedDate = installedDate,
-                        )
-                    )
+                onAddMeter = { meter ->
+                    energyViewModel.addMeter(meter)
                     navController.popBackStack()
                 }
             )
         }
 
-//        composable(Screen.Reports.route) {
-//            ReportsScreen(
-//                energyViewModel = energyViewModel,
-//                chartViewModel = chartViewModel,
-//            )
-//        }
+        composable(Screen.Reports.route) {
+            ReportsScreen(
+                viewModel = energyViewModel,
+            )
+        }
     }
 }
 
@@ -283,31 +274,23 @@ fun CardTopBar(
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
-//    val items = listOf(
-//        Screen.Dashboard,
-//        Screen.Analytics,
-//        Screen.Reports
-//    )
+    val items = listOf(
+        Screen.Dashboard,
+        Screen.Reports
+    )
 
     NavigationBar {
         val currentRoute = navController
             .currentBackStackEntryAsState().value?.destination?.route
 
-        Screen.screens.forEach { screen ->
+        items.forEach { screen ->
             val selected = currentRoute?.startsWith(screen.route) ?: false
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    if (screen == Screen.Analytics) {
-                        navController.navigate("${screen.route}/}") {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                    } else {
-                        navController.navigate(screen.route) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
                     }
                 },
                 label = {

@@ -9,6 +9,7 @@ object SeedData {
         MeterLocationEntity(
             meterId = "ENG-B1-WA",
             building = "Engineering Block",
+            block = "1",
             wing = "A",
             latitude = -1.2921f,
             longitude = 36.8219f,
@@ -17,6 +18,7 @@ object SeedData {
         MeterLocationEntity(
             meterId = "SCI-B2-WB",
             building = "Science Complex",
+            block = "2",
             wing = "B",
             latitude = -1.2924f,
             longitude = 36.8222f,
@@ -25,6 +27,7 @@ object SeedData {
         MeterLocationEntity(
             meterId = "LIB-B3-WC",
             building = "Library",
+            block = "1",
             wing = "C",
             latitude = -1.2927f,
             longitude = 36.8226f,

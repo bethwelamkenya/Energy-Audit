@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ke.ac.moi.energyaudit.data.AggregatedReading
 import ke.ac.moi.energyaudit.data.ChartRange
 import ke.ac.moi.energyaudit.data.MeterLocationEntity
 import ke.ac.moi.energyaudit.data.PowerMetrics
@@ -415,3 +416,21 @@ fun gaussianPowerFactor(): Double {
     val pf = 0.92 + Random().nextGaussian() * 0.03
     return pf.coerceIn(0.7, 1.0)
 }
+
+fun parseMeterId(meterId: String): Triple<String, String, String> {
+    // Example: ADM-B1_WA
+    val parts = meterId.split("-", "_")
+    // ["ADM", "B1", "WA"]
+    return Triple(parts[0], parts[1], parts[2])
+}
+
+//fun aggregateByLevel(readings: List<EnergyReadingEntity>, level: (String) -> String): List<AggregatedReading> {
+//    return readings.groupBy { level(it.meterId) }.map { (groupId, groupReadings) ->
+//        val totalPower = groupReadings.sumOf { it.powerKw.toDouble() }.toFloat()
+//        val avgVoltage = groupReadings.map { it.voltage }.average().toFloat()
+//        val totalCurrent = groupReadings.sumOf { it.current.toDouble() }.toFloat()
+//        val lastUpdated = groupReadings.maxOf { it.timestamp }
+//        AggregatedReading(groupId, totalPower, avgVoltage, totalCurrent, lastUpdated)
+//    }
+//}
+

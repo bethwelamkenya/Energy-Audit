@@ -12,6 +12,7 @@ data class MeterLocationEntity(
     val meterId: String,
 
     val building: String,
+    val block: String,
     val wing: String,
     val latitude: Float,
     val longitude: Float,

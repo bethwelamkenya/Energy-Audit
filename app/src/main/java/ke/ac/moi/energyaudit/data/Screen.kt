@@ -11,11 +11,9 @@ sealed class Screen(val title: String, val route: String, val icon: ImageVector)
     object Dashboard : Screen("Energy Audit","dashboard", Icons.Default.Home)
     object Analytics : Screen("Meter Analytics","analytics", Icons.Default.Analytics)
     object AddMeter : Screen("Add New Meter","addMeter", Icons.Default.Add)
-//    object Reports : Screen("System Report","reports", Icons.Default.Report)
+    object Reports : Screen("System Report","reports", Icons.Default.Report)
 
     companion object{
-//        val screens = listOf(Dashboard, Analytics)
-//        val screens = listOf(Dashboard, Analytics, Reports)
-        val screens = listOf(Dashboard, Analytics, AddMeter)
+        val screens = listOf(Dashboard, Analytics, Reports, AddMeter)
     }
 }

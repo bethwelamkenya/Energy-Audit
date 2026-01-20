@@ -12,7 +12,7 @@ import ke.ac.moi.energyaudit.utils.DateConverters
         MeterLocationEntity::class,
         EnergyReadingEntity::class
     ],
-    version = 1
+    version = 2
 )
 @TypeConverters(DateConverters::class)
 abstract class EnergyDatabase : RoomDatabase() {
