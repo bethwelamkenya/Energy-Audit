@@ -262,12 +262,7 @@ fun CardTopBar(
                     modifier = Modifier.padding(8.dp)
                 ) { actions() }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-//                    titleContentColor = MaterialTheme.colorScheme.surface,
-//                    navigationIconContentColor = MaterialTheme.colorScheme.surface,
-//                    actionIconContentColor = MaterialTheme.colorScheme.surface
-            )
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
         )
     }
 }
