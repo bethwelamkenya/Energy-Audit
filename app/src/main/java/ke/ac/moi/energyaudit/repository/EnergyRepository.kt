@@ -28,6 +28,11 @@ class EnergyRepository(
         meterDao.insert(meter)
     }
 
+    suspend fun removeMeter(meter: MeterLocationEntity) {
+        readingDao.deleteAllByMeterId(meter.meterId)
+        meterDao.remove(meter)
+    }
+
     suspend fun seedMetersIfNeeded() {
         val count = meterDao.count()
         if (count == 0) {

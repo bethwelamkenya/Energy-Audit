@@ -1,12 +1,17 @@
 package ke.ac.moi.energyaudit
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,30 +37,25 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ke.ac.moi.energyaudit.data.MeterLocationEntity
 import ke.ac.moi.energyaudit.data.Screen
+import ke.ac.moi.energyaudit.ui.screens.AddMeterScreen
 import ke.ac.moi.energyaudit.ui.screens.AnalyticsScreen
 import ke.ac.moi.energyaudit.ui.screens.DashboardScreen
 import ke.ac.moi.energyaudit.ui.screens.IconBox
-import ke.ac.moi.energyaudit.ui.screens.ReportsScreen
 import ke.ac.moi.energyaudit.ui.theme.EnergyAuditTheme
 import ke.ac.moi.energyaudit.ui.viewmodel.ChartViewModel
 import ke.ac.moi.energyaudit.ui.viewmodel.ChartViewModelFactory
@@ -75,13 +74,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            RequestNotificationPermission(this)
             val chartModel: ChartViewModel by viewModels {
                 ChartViewModelFactory((application as EnergyAuditApplication).repository)
             }
             EnergyAuditTheme {
                 EnergyAuditApp(
                     energyViewModel = viewModel,
-                    chartViewModel = chartModel
+                    chartViewModel = chartModel,
+                    this
                 )
 //                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 //                    DashboardScreen(
@@ -95,14 +96,43 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun RequestNotificationPermission(context: Context) {
+
+    val permissionLauncher = rememberLauncherForActivityResult (
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Notifications allowed
+        } else {
+            // Permission denied
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+}
+
+
+@Composable
 fun EnergyAuditApp(
     energyViewModel: EnergyViewModel,
-    chartViewModel: ChartViewModel
+    chartViewModel: ChartViewModel,
+    context: Context
 ) {
     val navController = rememberNavController()
     val currentRoute = navController
         .currentBackStackEntryAsState().value?.destination?.route
-    val selected = Screen.screens.find { currentRoute?.startsWith(it.route) == true } ?: Screen.Dashboard
+    val selected =
+        Screen.screens.find { currentRoute?.startsWith(it.route) == true } ?: Screen.Dashboard
 
     Scaffold(
         topBar = {
@@ -113,13 +143,14 @@ fun EnergyAuditApp(
                 actions = {}
             )
         },
-        bottomBar = { BottomNavBar(navController) }
+//        bottomBar = { BottomNavBar(navController) }
     ) { padding ->
         Box(Modifier.padding(padding)) {
             EnergyAuditNavGraph(
                 navController = navController,
                 energyViewModel = energyViewModel,
-                chartViewModel = chartViewModel
+                chartViewModel = chartViewModel,
+                context = context
             )
         }
     }
@@ -129,7 +160,8 @@ fun EnergyAuditApp(
 fun EnergyAuditNavGraph(
     navController: NavHostController,
     energyViewModel: EnergyViewModel,
-    chartViewModel: ChartViewModel
+    chartViewModel: ChartViewModel,
+    context: Context
 ) {
     NavHost(
         navController = navController,
@@ -138,8 +170,11 @@ fun EnergyAuditNavGraph(
 
         composable(Screen.Dashboard.route) {
             DashboardScreen(
+                context = context,
                 viewModel = energyViewModel,
-                onMeterClick = { navController.navigate("${Screen.Analytics.route}/${it.meterId}") })
+                onMeterClick = { navController.navigate("${Screen.Analytics.route}/${it.meterId}") },
+                onAddMeterClick = { navController.navigate(Screen.AddMeter.route) }
+            )
         }
 
         composable("${Screen.Analytics.route}/{id}") { backStackEntry ->
@@ -148,16 +183,40 @@ fun EnergyAuditNavGraph(
             AnalyticsScreen(
                 meterId = id,
                 energyViewModel = energyViewModel,
-                chartViewModel = chartViewModel
+                chartViewModel = chartViewModel,
+                onMeterRemoved = {
+                    navController.popBackStack(
+                        route = Screen.Dashboard.route,
+                        inclusive = false
+                    )
+                }
             )
         }
 
-        composable(Screen.Reports.route) {
-            ReportsScreen(
-                energyViewModel = energyViewModel,
-                chartViewModel = chartViewModel,
+        composable(Screen.AddMeter.route) {
+            AddMeterScreen(
+                onAddMeter = { meterId, building, wing, latitude, longitude, installedDate ->
+                    energyViewModel.addMeter(
+                        MeterLocationEntity(
+                            meterId = meterId,
+                            building = building,
+                            wing = wing,
+                            latitude = latitude,
+                            longitude = longitude,
+                            installedDate = installedDate,
+                        )
+                    )
+                    navController.popBackStack()
+                }
             )
         }
+
+//        composable(Screen.Reports.route) {
+//            ReportsScreen(
+//                energyViewModel = energyViewModel,
+//                chartViewModel = chartViewModel,
+//            )
+//        }
     }
 }
 
@@ -190,9 +249,10 @@ fun CardTopBar(
             navigationIcon = {
                 if (homePage) {
                     Image(
-                        modifier = Modifier.height(60.dp).padding(10.dp),
-                        // TODO
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        modifier = Modifier
+                            .height(60.dp)
+                            .padding(10.dp),
+                        painter = painterResource(id = R.drawable.app_image),
                         contentDescription = null
                     )
                 } else {
@@ -223,17 +283,17 @@ fun CardTopBar(
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
-    val items = listOf(
-        Screen.Dashboard,
-        Screen.Analytics,
-        Screen.Reports
-    )
+//    val items = listOf(
+//        Screen.Dashboard,
+//        Screen.Analytics,
+//        Screen.Reports
+//    )
 
     NavigationBar {
         val currentRoute = navController
             .currentBackStackEntryAsState().value?.destination?.route
 
-        items.forEach { screen ->
+        Screen.screens.forEach { screen ->
             val selected = currentRoute?.startsWith(screen.route) ?: false
             NavigationBarItem(
                 selected = selected,
@@ -258,7 +318,7 @@ fun BottomNavBar(navController: NavHostController) {
                     })
                 },
                 icon = {
-                    if (selected){
+                    if (selected) {
                         IconBox(
                             icon = screen.icon,
                             size = 50,

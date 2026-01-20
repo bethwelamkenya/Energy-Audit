@@ -37,8 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ke.ac.moi.energyaudit.data.ChartRange
 import ke.ac.moi.energyaudit.data.MeterLocationEntity
+import ke.ac.moi.energyaudit.data.PowerMetrics
 import java.io.OutputStreamWriter
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.Random
+import kotlin.math.sqrt
 
 fun exportEnergyReadingsToCsv(
     resolver: ContentResolver,
@@ -377,4 +382,36 @@ fun computeStats(readings: List<EnergyReadingEntity>): ChartStats? {
         max = powers.max(),
         avg = powers.average().toFloat()
     )
+}
+
+fun LocalDateTime.toReadableString(): String {
+    val formatter = DateTimeFormatter.ofPattern(
+        "EEE, dd MMM yyyy, HH:mm",
+        Locale.getDefault()
+    )
+    return this.format(formatter)
+}
+
+fun calculatePowerMetrics(
+    voltage: Double,
+    current: Double,
+    powerFactor: Double
+): PowerMetrics {
+    val apparentPower = (voltage * current) / 1000.0
+    val realPower = apparentPower * powerFactor
+    val reactivePower = sqrt(
+        apparentPower * apparentPower - realPower * realPower
+    )
+
+    return PowerMetrics(
+        realPowerKw = realPower,
+        reactivePowerKvar = reactivePower,
+        apparentPowerKva = apparentPower,
+        powerFactor = powerFactor
+    )
+}
+
+fun gaussianPowerFactor(): Double {
+    val pf = 0.92 + Random().nextGaussian() * 0.03
+    return pf.coerceIn(0.7, 1.0)
 }

@@ -12,6 +12,9 @@ interface EnergyReadingDao {
     @Insert
     suspend fun insert(reading: EnergyReadingEntity)
 
+    @Query("DELETE FROM energy_readings WHERE meter_id = :meterId")
+    suspend fun deleteAllByMeterId(meterId: String)
+
     @Query("""
         SELECT * FROM energy_readings
         WHERE meter_id = :meterId

@@ -21,12 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -36,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -80,7 +83,8 @@ import java.time.format.DateTimeFormatter
 fun AnalyticsScreen(
     meterId: String?,
     energyViewModel: EnergyViewModel,
-    chartViewModel: ChartViewModel
+    chartViewModel: ChartViewModel,
+    onMeterRemoved: () -> Unit
 ) {
     val meters by energyViewModel
         .meters
@@ -150,19 +154,72 @@ fun AnalyticsScreen(
             .verticalScroll(rememberScrollState()) // 🔑 Essential for overflow
             .padding(16.dp)
     ) {
-        // Group 1: Configuration
-        SectionHeader("Configuration")
+        SectionHeader("Meter Details")
+        Spacer(Modifier.height(16.dp))
+
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Meter ID: ${meter.meterId}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                HorizontalDivider()
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Building: ${meter.building}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = "Wing: ${meter.wing}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Lat: ${"%.4f".format(meter.latitude)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Lon: ${"%.4f".format(meter.longitude)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = "Installed: ${meter.installedDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+
 
         Spacer(Modifier.height(16.dp))
 
-        MeterLocationSelector(
-            locations = meters,
-            selectedLocation = meter,
-            onLocationSelected = {
-                meter = it
-            }
-        )
+//        MeterLocationSelector(
+//            locations = meters,
+//            selectedLocation = meter,
+//            onLocationSelected = {
+//                meter = it
+//            }
+//        )
 
+//        Spacer(Modifier.height(16.dp))
+
+        // Group 1: Configuration
+        SectionHeader("Range Selector")
         Spacer(Modifier.height(16.dp))
 
         ChartRangeSelector(
@@ -193,9 +250,10 @@ fun AnalyticsScreen(
                 // Transition animation for data changes
                 AnimatedContent(targetState = readings.isEmpty(), label = "chart") { isEmpty ->
                     if (isEmpty) {
-                        Box(Modifier
-                            .height(250.dp)
-                            .fillMaxWidth(), Alignment.Center) {
+                        Box(
+                            Modifier
+                                .height(250.dp)
+                                .fillMaxWidth(), Alignment.Center) {
                             CircularProgressIndicator()
                         }
                     } else {
@@ -270,6 +328,24 @@ fun AnalyticsScreen(
         }
 
         Spacer(Modifier.height(24.dp))
+
+        // DANGER ZONE
+
+        SectionHeader("Danger Zone")
+
+        Spacer(Modifier.height(16.dp))
+
+
+        TextButton(colors = ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.error
+        ), modifier = Modifier.fillMaxWidth(), onClick = {
+            energyViewModel.removeMeter(meter)
+            onMeterRemoved()
+        }) {
+            Icon(Icons.Default.Delete, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Remove Meter and All Readings")
+        }
     }
 }
 
@@ -360,7 +436,3 @@ private fun StatItem(
         )
     }
 }
-
-
-
-

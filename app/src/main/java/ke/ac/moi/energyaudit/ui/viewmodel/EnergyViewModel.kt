@@ -23,6 +23,8 @@ class EnergyViewModel(
     private val _meters = MutableStateFlow<List<MeterLocationEntity>>(emptyList())
     val meters: StateFlow<List<MeterLocationEntity>> = _meters
 
+    private val _loop = MutableStateFlow<Boolean>(true)
+
     init {
         viewModelScope.launch {
 
@@ -37,6 +39,21 @@ class EnergyViewModel(
             }
         }
     }
+
+    fun addMeter(meter: MeterLocationEntity) {
+        viewModelScope.launch {
+            repository.addMeter(meter)
+            _meters.value = repository.getAllMeters()
+        }
+    }
+
+    fun removeMeter(meter: MeterLocationEntity) {
+        viewModelScope.launch {
+            repository.removeMeter(meter)
+            _meters.value = repository.getAllMeters()
+        }
+    }
+
 
     fun latestReading(meterId: String) =
         repository.observeLatestReading(meterId)

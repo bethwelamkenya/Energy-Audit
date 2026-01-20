@@ -1,6 +1,7 @@
 package ke.ac.moi.energyaudit.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -10,6 +11,9 @@ interface MeterLocationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(meter: MeterLocationEntity)
+
+    @Delete
+    suspend fun remove(meter: MeterLocationEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(meters: List<MeterLocationEntity>)

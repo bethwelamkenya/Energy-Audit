@@ -2,6 +2,7 @@ package ke.ac.moi.energyaudit.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -22,10 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +42,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -72,6 +78,9 @@ import ke.ac.moi.energyaudit.data.ChartRange
 import ke.ac.moi.energyaudit.data.EnergyReadingEntity
 import ke.ac.moi.energyaudit.data.MeterLocationEntity
 import ke.ac.moi.energyaudit.ui.viewmodel.EnergyViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
@@ -128,110 +137,7 @@ fun MeterCard1(
     }
 }
 
-@Composable
-fun MeterCard(
-    meter: MeterLocationEntity,
-    viewModel: EnergyViewModel,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-) {
-    val reading by viewModel
-        .latestReading(meter.meterId)
-        .collectAsState(initial = null)
 
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        reading?.let {
-            val recommendation = viewModel.generateRecommendation(it)
-            val inefficient = recommendation != "Energy usage within optimal range."
-            val statusColor =
-                if (inefficient) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            Column(Modifier.padding(16.dp)) {
-                // Header: Building and Status
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = meter.building,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Wing ${meter.wing}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Status Indicator
-                    Icon(
-                        imageVector = if (inefficient) Icons.Default.Warning else Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = statusColor
-                    )
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
-
-                // Power Value Display
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = reading?.let { "%.2f".format(it.powerKw) } ?: "--",
-                        style = MaterialTheme.typography.displaySmall,
-                        color = statusColor,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        text = " kW",
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = statusColor
-                    )
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                // Recommendation Section
-                Surface(
-                    color = statusColor.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = statusColor
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = viewModel.generateRecommendation(it),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -883,6 +789,62 @@ fun IconBox(
             modifier = Modifier.size((size * (0.6)).dp)
 //            modifier = Modifier.size(24.dp)
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateSelectionTextField(
+    label: String,
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    )
+
+    OutlinedTextField(
+        value = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+        onValueChange = {},
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDatePicker = true },
+        label = { Text(label) },
+        shape = RoundedCornerShape(16.dp),
+        trailingIcon = {
+            Icon(
+                Icons.Default.DateRange,
+                contentDescription = "Select Date"
+            )
+        },
+        readOnly = true,
+        enabled = false
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            onDateSelected(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate())
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 
